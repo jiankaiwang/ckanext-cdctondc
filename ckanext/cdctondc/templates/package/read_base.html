@@ -1,0 +1,150 @@
+{% extends "package/base.html" %}
+
+{% block subtitle %}{{ pkg.title or pkg.name }} - {{ super() }}{% endblock %}
+
+{% block head_extras -%}
+  {{ super() }}
+  {% set description = h.markdown_extract(pkg.notes, extract_length=200)|forceescape %}
+  <meta property="og:title" content="{{ h.dataset_display_name(pkg) }} - {{ g.site_title }}">
+  <meta property="og:description" content="{{ description|forceescape|trim }}">
+{% endblock -%}
+
+{% block content_action %}
+  {% if h.check_access('package_update', {'id':pkg.id }) %}
+
+  {#<button class="btn btn-warning">{{ request.method }} {{ request.body }}</button>#}
+
+{# only admin can sync with NDC #}
+{% if c.userobj.sysadmin %}
+
+  {# customized : upload to NDC #}
+  {% if request.method == "GET" %}
+      {% set state = h.syncNDCState(pkg) %}
+      {% if state["show"] == "sync" %}
+          {# sync #}
+          <button class="btn btn-warning">
+              <i class="icon-repeat"></i>
+              {{ state["note"] }}
+          </button>
+          {# refresh for current state #}
+          <meta http-equiv="refresh" content="15;url={{ _('{0}dataset/{1}').format(h.url_for(controller='home', action='index'), pkg['name']) }}"></meta>
+      {% else %}
+          {# submit/success/failure #}
+          <form method="post" name="upload" action="#" class="sumbit-form">
+          {% if state["show"] == "submit" or state["show"] == "success" %}
+              {# the first submit or already submitted succefully #}
+              <button class="btn btn-primary" name="save" type="submit" style="display: inline-block;" value="DataGovTW">
+                  <i class="icon-cloud-upload"></i>
+                  {{ _('國發會({0})').format(state["note"]) }}
+              </button>
+          {% else %}
+              <button class="btn btn-danger" name="save" type="submit" style="display: inline-block;" value="DataGovTW">
+                  <i class="icon-cloud-upload"></i>
+                  {{ _('國發會({0})').format(state["note"]) }}
+              </button>
+          {% endif %}
+          </form>
+
+          {# allow delete #}
+              {% if state["clicking"] != "put" %}
+                  {# not submitted to NDC yet #}
+                  <button class="btn btn-warning" name="delete" style="display: inline-block;">
+                      <i class="icon-exclamation-sign"></i>
+                      {{ h.getLangLabel("Unsubmitted","未建立") }}
+                  </button>
+              {% else %}
+                  {# only PUT (means already POST before) can be deleted #}
+                  <form method="post" name="uploadForDelete" action="#" class="sumbit-form">
+                      <button class="btn btn-danger" name="delete" type="submit" style="display: inline-block;" value="FromDataGovTW">
+                          <i class="icon-exclamation-sign"></i>
+                          {{ h.getLangLabel("Delete","刪除") }}
+                      </button>
+                  </form>
+              {% endif %}
+      {% endif %}
+
+  {% elif request.method == "POST" and h.getPostRequestParamValue(request.body, "save") == "DataGovTW" %}
+      {% set state = h.syncNDCState(pkg) %}
+      {% if state["show"] == "sync" %}
+          {# sync #}
+          <button class="btn btn-warning" name="save" type="submit" style="display: inline-block;" value="noaction">
+              <i class="icon-repeat"></i>
+              {{ state["note"] }}
+          </button>
+      {% else %}
+          {# start sync to ndc : POST or PUT #}
+          {% set syncState = h.actSYNC2NDC(pkg, "check") %}
+          <button class="btn btn-warning" name="save" type="submit" style="display: inline-block;" value="noaction">
+             <i class="icon-repeat"></i>
+             {{ _("Start Syncing") }}
+          </button>
+       {% endif %}
+
+       {# refresh for prepare data submitting #}
+       <meta http-equiv="refresh" content="3;url={{ _('{0}dataset/{1}').format(h.url_for(controller='home', action='index'), pkg['name']) }}"></meta>
+       {#<meta http-equiv="refresh" content="1;url={{ _('{0}dataset').format(h.url_for(controller='home', action='index')) }}"></meta>#}
+  {% elif request.method == "POST" and h.getPostRequestParamValue(request.body, "delete") == "FromDataGovTW" %}
+       {# delete both cdc and ndc #}
+       {% set actStatus = h.actSYNC2NDC(pkg, "delete") %}
+       <button class="btn btn-warning">
+           <i class="icon-repeat"></i>
+           {{ _("Start Deleting") }}
+       </button>
+
+       {# refresh for deleting data #}
+       <meta http-equiv="refresh" content="3;url={{ _('{0}dataset/{1}').format(h.url_for(controller='home', action='index'), pkg['name']) }}"></meta>
+
+  {% endif %}
+
+{# admin #}
+{% endif %}
+
+    {% link_for _('Manage'), controller='package', action='edit', id=pkg.name, class_='btn', icon='wrench' %}
+  {% endif %}
+{% endblock %}
+
+{% block content_primary_nav %}
+  {{ h.build_nav_icon('dataset_read', _('Dataset'), id=pkg.name) }}
+  {{ h.build_nav_icon('dataset_groups', _('Groups'), id=pkg.name) }}
+  {{ h.build_nav_icon('dataset_activity', _('Activity Stream'), id=pkg.name) }}
+{% endblock %}
+
+{% block primary_content_inner %}
+    {% block package_revision_info %}
+      {% if c.revision_date %}
+        <div class="module info alert alert-info">
+          <p class="module-content">
+            {% set timestamp = h.render_datetime(c.revision_date, with_hours=True) %}
+            {% set url = h.url(controller='package', action='read', id=pkg.name) %}
+
+            {% trans timestamp=timestamp, url=url %}This is an old revision of this dataset, as edited at {{ timestamp }}. It may differ significantly from the <a href="{{ url }}">current revision</a>.{% endtrans %}
+          </p>
+        </div>
+      {% endif %}
+    {% endblock %}
+{% endblock %}
+
+{% block secondary_content %}
+
+  {% block secondary_help_content %}{% endblock %}
+
+  {% block package_info %}
+    {% snippet 'package/snippets/info.html', pkg=pkg %}
+  {% endblock %}
+
+  {% block package_organization %}
+    {% if pkg.organization %}
+      {% set org = h.get_organization(pkg.organization.name) %}
+      {% snippet "snippets/organization.html", organization=org, has_context_title=true %}
+    {% endif %}
+  {% endblock %}
+
+  {% block package_social %}
+    {% snippet "snippets/social.html" %}
+  {% endblock %}
+
+  {% block package_license %}
+    {% snippet "snippets/license.html", pkg_dict=pkg %}
+  {% endblock %}
+
+{% endblock %}
