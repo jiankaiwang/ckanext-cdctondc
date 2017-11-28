@@ -6,7 +6,19 @@
 ckanext-cdctondc
 =============
 
-The repository implements the API of CDC Open Data Portal connects to NDC Open Data Portal.
+The repository implements the API of CDC Open Data Portal connects to NDC Open Data Portal. The all synchronization operations is in one button.
+
+* The synchronization operation is shown on the page of each datasets.
+
+.. image:: images/first_commit.png
+
+* The synchronization button would be shown in red while it failed.
+
+.. image:: images/failure.png
+
+* The synchronization button would be shown in green while it succeeded.
+
+.. image:: images/success.png
 
 ------------
 Requirements
@@ -35,6 +47,7 @@ To install ckanext-cdctondc:
 
 3. Install the ckanext-cdctondc Python package into your virtual environment::
 
+     cd /usr/lib/ckan/default/src/ckanext-cdctondc
      pip install .
 
 4. Add ``cdctondc`` to the ``ckan.plugins`` setting in your CKAN
@@ -62,6 +75,8 @@ Config Settings
      ckan.plugins = cdctondc
 
 2. Document any optional config settings here. For example::
+
+     sudo vim /etc/ckan/default/production.ini
 
      ckan.cdctondc.psqlUrl = postgresql://(dbuser):(dbpass)@(dbhost)/(dbname)
      ckan.cdctondc.apikey = (This is the api key received from NDC.)
