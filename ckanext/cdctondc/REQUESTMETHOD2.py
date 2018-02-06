@@ -1,5 +1,5 @@
 #
-# author : jiankaiwang (https://welcome-jiankaiwang.rhcloud.com/)
+# author : jiankaiwang (https://jiankaiwang.no-ip.biz/)
 # project : seed (https://github.com/jiankaiwang/seed)
 # reference : seed (https://www.gitbook.com/book/jiankaiwang/seed/details)
 #
@@ -82,6 +82,9 @@ class SENDREQUEST:
             # begin put or delete request
             if self.__method == "put":
                 req = requests.put(self.__url, json = TEXTCODING.unicode2utf8FromDict(self.__jsonData), headers = self.__addHeader) 
+                #req = requests.put(self.__url, json = self.__jsonData, headers = self.__addHeader)
+                #req = requests.put('https://od.cdc.gov.tw/req.php', json = TEXTCODING.unicode2utf8FromDict(self.__jsonData), headers = self.__addHeader)
+                #print(TEXTCODING.unicode2utf8FromDict(self.__jsonData))
                 self.__response = req.text
             elif self.__method == "delete":
                 req = requests.delete(self.__url, headers = self.__addHeader)

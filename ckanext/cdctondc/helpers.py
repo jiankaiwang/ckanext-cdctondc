@@ -157,15 +157,15 @@ class ASSEMBLEDATA:
     # private
     # -------------------------------------------------------
     __pkg = ""
-    __categoryCode = "B00"
-    __publisherOrgCode = "A21010000I"
-    __publisherOID = "2.16.886.101.20003.20065.20021"
-    __organization = u'衛生福利部疾病管制署'
-    __publisher = u'衛生福利部疾病管制署'
-    __license = u'政府資料開放授權條款－第1版'
-    __licenseURL = '/license'
-    __spatial = u'臺灣'
-    __dbID = ''
+    __categoryCode = ""
+    __publisherOrgCode = ""
+    __publisherOID = ""
+    __organization = ""
+    __publisher = ""
+    __license = ""
+    __licenseURL = ""
+    __spatial = ""
+    __dbID = ""
 
     #
     # desc : translate content
@@ -173,20 +173,22 @@ class ASSEMBLEDATA:
     def __getLangContent(self, option, value):
         if option == "cost":
             if value == u"free":
-                return u'免費'
+                #return u'免費'
+                return u'\u514d\u8cbb'
             else:
-                return u'付費'
+                #return u'付費'
+                return u'\u4ed8\u8cbb'
         elif option == "freq":
             if value == u"day":
-                return u'每日'
+                return u'\u6bcf\u65e5'
             elif value == u"month":
-                return u'每月'
+                return u'\u6bcf\u6708'
             elif value == u"year":
-                return u'每年'
+                return u'\u6bcf\u5e74'
             elif value == u"once":
-                return u'不更新'
+                return u'\u4e0d\u66f4\u65b0'
             elif value == u"non-scheduled":
-                return u'不定期'
+                return u'\u4e0d\u5b9a\u671f'
 
     #
     # desc : transform datetime
@@ -294,11 +296,16 @@ class ASSEMBLEDATA:
         self.__categoryCode = "B00"
         self.__publisherOrgCode = "A21010000I"
         self.__publisherOID = "2.16.886.101.20003.20065.20021"
-        self.__organization = u'衛生福利部疾病管制署'
-        self.__publisher = u'衛生福利部疾病管制署'
-        self.__license = u'政府資料開放授權條款－第1版'
+        #self.__organization = u'衛生福利部疾病管制署'
+        #self.__publisher = u'衛生福利部疾病管制署'
+        #self.__license = u'政府資料開放授權條款－第1版'
+        #self.__licenseURL = '/license'
+        #self.__spatial = u'臺灣'        
+        self.__organization = u'\u885b\u751f\u798f\u5229\u90e8\u75be\u75c5\u7ba1\u5236\u7f72'
+        self.__publisher = u'\u885b\u751f\u798f\u5229\u90e8\u75be\u75c5\u7ba1\u5236\u7f72'
+        self.__license = u'\u653f\u5e9c\u8cc7\u6599\u958b\u653e\u6388\u6b0a\u689d\u6b3e\uff0d\u7b2c1\u7248'
         self.__licenseURL = '/license'
-        self.__spatial = u'臺灣'
+        self.__spatial = u'\u81fa\u7063'
 
         # outer resource
         self.__pkg = getPKG
@@ -401,10 +408,6 @@ def syncNDCInitDataset(dbHost, dbPort, dbDB, dbTB, dbUser, dbPwd, pkg):
 # multiprocessing method:
 #  |- { "post"|"put"|"sync"|"deleted" }
 #
-def testNDC(fileName, text):
-    with open(fileName,"a") as fout:
-        fout.write(text + "\n")
-
 def SYNCNDC(dbHost, dbPort, dbDB, dbTB, dbUser, dbPwd, getPKG, tgtSrc, tgtMtd, *args):
 
     # dbHost : postgresql server host
@@ -578,8 +581,10 @@ def SYNCNDC(dbHost, dbPort, dbDB, dbTB, dbUser, dbPwd, getPKG, tgtSrc, tgtMtd, *
                     u"ending" : datetime.datetime.now()\
                     },{"cdcid" : getPKG[u'id'], "ndcid" : ndcid[0][u'ndcid']})
 
-                with open("/tmp/ndcsync.txt","w") as fout:
-                    fout.write(json.dumps(putData.assemblePOSTOrPUTData()))
+                #print(putData.assemblePOSTOrPUTData())
+                #print(json.dumps(putData.assemblePOSTOrPUTData()))
+                #print(tgtSrc + "/" + ndcid[0][u'ndcid'])
+                #print(config.get("ckan.cdctondc.apikey"))
 
                 put2NDC = SENDREQUEST(\
                     tgtSrc + "/" + ndcid[0][u'ndcid'], \
